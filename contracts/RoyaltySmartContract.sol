@@ -27,14 +27,14 @@ contract RoyaltySmartContract is  WhiteListing,
 
     
     uint16 public constant MAX_SUPPLY = 1000;
-    uint256 public constant MINT_PRICE = 0.5 ether;
+    uint256 public constant MINT_PRICE = 0.05 ether;
     uint8 public constant MAX_PER_ADDRESS = 5;
     string constant BASE_URL =
-        "ipfs://QmQzyFHWKcKS8YxyQ12Sy71LAo4Atc9yYkp96DpnXcegVT";
+        "ipfs://QmfJUU2GBjq1SByKmkh3ZMW4ZwK8T6gaKPsLUHt21CKwPx";
 
 
     /** Intialiser to set the default values and the base Uri */
-    constructor() ERC721("AviumWorldTestNet", "AWW") {
+    constructor() ERC721("AviumWorldTestNetV1", "AWW") {
         console.log("RoyaltySmartContract Constructor");
         _setDefaultRoyalty(_msgSender(), ROYALTY_FEE_DEFAULT);
     }
