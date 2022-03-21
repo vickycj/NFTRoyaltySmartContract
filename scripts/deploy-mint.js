@@ -28,7 +28,7 @@ async function main() {
 }
 
 //Contract deployed address
-//0xD938d406F161a4E21Ad6c025f7Efa7128f828E0e
+//0x422421025E6D8E2E28241F1502114817404482e4
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
