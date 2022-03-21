@@ -6,10 +6,16 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "hardhat/console.sol";
+import "./WhiteListing.sol";
 
-contract RoyaltySmartContract is ERC721Royalty, ERC721Enumerable, Ownable {
-    
+contract RoyaltySmartContract is  WhiteListing,
+    ERC721Royalty,
+    ERC721Enumerable,
+    Pausable,
+    Ownable
+{
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
@@ -19,48 +25,61 @@ contract RoyaltySmartContract is ERC721Royalty, ERC721Enumerable, Ownable {
     /** Royalty fee expressed in basis point, defaults to 2 % of the sale price */
     uint96 ROYALTY_FEE_DEFAULT = 20;
 
-    bool public isSaleActive = true;
+    
     uint16 public constant MAX_SUPPLY = 1000;
     uint256 public constant MINT_PRICE = 0.5 ether;
-    uint8 public constant MAX_PER_ADDRESS= 5;
-    string constant BASE_URL = "ipfs://QmQzyFHWKcKS8YxyQ12Sy71LAo4Atc9yYkp96DpnXcegVT";
-    
+    uint8 public constant MAX_PER_ADDRESS = 5;
+    string constant BASE_URL =
+        "ipfs://QmQzyFHWKcKS8YxyQ12Sy71LAo4Atc9yYkp96DpnXcegVT";
+
+
     /** Intialiser to set the default values and the base Uri */
     constructor() ERC721("AviumWorldTestNet", "AWW") {
         console.log("RoyaltySmartContract Constructor");
         _setDefaultRoyalty(_msgSender(), ROYALTY_FEE_DEFAULT);
     }
 
-
     /** Update Royalty Fee */
     function updateRoyaltyFee(uint96 royaltyFee) public onlyOwner {
         _setDefaultRoyalty(owner(), royaltyFee);
     }
 
-    /** Update sale status : stop or start*/
-    function updateSaleStatus() public onlyOwner {
-        isSaleActive = !isSaleActive;
-    }
-
-     /** Withdraw money to the owner address */
+  
+    /** Withdraw money to the owner address */
     function withdraw() public onlyOwner {
-       uint balance = address(this).balance;
-       require(balance > 0, "No ether left to withdraw");
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No ether left to withdraw");
 
-       (bool success,) = (owner()).call{value: balance}("");
-       require(success, "Transfer failed.");
+        (bool success, ) = (owner()).call{value: balance}("");
+        require(success, "Transfer failed.");
     }
 
-     /** Do basic validations and mint NFT if all conditions matches */
-    function mintRoyaltyNft() public payable {
-        require(isSaleActive, "Sale is not active.");
+    /** Change the state of whitelist minting  */
+    function setOnlyWhitListerAllowed(bool _state) public onlyOwner {
+        _setOnlyWhitelisted(_state);
+    }
+
+    /** Set the list of whitelisters, clears the previous values */
+     function addWhiteListers(address[] calldata _users) public onlyOwner {
+        _whitelistUsers(_users);
+    }
+
+    /** Do validations and mint NFT if all conditions matches */
+    function mintRoyaltyNft() public payable whenNotPaused {
         require(totalSupply() <= MAX_SUPPLY, "NFTs Sold Out.");
         require(msg.value >= MINT_PRICE, "Not enough ether to purchase NFT.");
-        require(balanceOf(_msgSender()) <= MAX_PER_ADDRESS, "Already Exceeded max alowed Tokens.");
-        _mintNft();
+        require(
+            balanceOf(_msgSender()) <= MAX_PER_ADDRESS,
+            "Already Exceeded max alowed Tokens."
+        );
+        if(_isOnlyWhitelisted() == true) {
+            require(isWhitelisted(_msgSender()), "You are not whitelisted for the sale.");
+            _mintNft();
+        } else {
+            _mintNft();
+        }
     }
 
-   
     function _mintNft() internal {
         uint256 newItemId = _tokenIds.current();
         _safeMint(_msgSender(), newItemId);
@@ -69,8 +88,7 @@ contract RoyaltySmartContract is ERC721Royalty, ERC721Enumerable, Ownable {
         emit RoyaltykNftMinted(_msgSender(), newItemId);
     }
 
-
-     function supportsInterface(bytes4 interfaceId)
+    function supportsInterface(bytes4 interfaceId)
         public
         view
         override(ERC721Enumerable, ERC721Royalty)
@@ -83,22 +101,37 @@ contract RoyaltySmartContract is ERC721Royalty, ERC721Enumerable, Ownable {
         return BASE_URL;
     }
 
-    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+    function pause() public onlyOwner {
+        _pause();
+    }
+
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
+    {
+        require(
+            _exists(tokenId),
+            "ERC721Metadata: URI query for nonexistent token"
+        );
         return _baseURI();
     }
 
-
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId)
-        internal
-        override(ERC721, ERC721Enumerable)
-    {
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal override(ERC721, ERC721Enumerable) {
         super._beforeTokenTransfer(from, to, tokenId);
     }
 
     function _burn(uint256 tokenId) internal override(ERC721, ERC721Royalty) {
         super._burn(tokenId);
     }
-
-    
 }
