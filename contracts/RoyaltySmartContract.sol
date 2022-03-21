@@ -23,7 +23,7 @@ contract RoyaltySmartContract is ERC721Royalty, ERC721Enumerable, Ownable {
     uint16 public constant MAX_SUPPLY = 1000;
     uint256 public constant MINT_PRICE = 0.5 ether;
     uint8 public constant MAX_PER_ADDRESS= 5;
-
+    string constant BASE_URL = "ipfs://QmQzyFHWKcKS8YxyQ12Sy71LAo4Atc9yYkp96DpnXcegVT";
     
     /** Intialiser to set the default values and the base Uri */
     constructor() ERC721("AviumWorldTestNet", "AWW") {
@@ -80,8 +80,14 @@ contract RoyaltySmartContract is ERC721Royalty, ERC721Enumerable, Ownable {
     }
 
     function _baseURI() internal pure override returns (string memory) {
-        return "https://foo.com/token/";
+        return BASE_URL;
     }
+
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+        return _baseURI();
+    }
+
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId)
         internal
