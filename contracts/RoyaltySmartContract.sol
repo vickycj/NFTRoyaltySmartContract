@@ -44,7 +44,7 @@ contract RoyaltySmartContract is  WhiteListing,
         _setDefaultRoyalty(owner(), royaltyFee);
     }
 
-  
+
     /** Withdraw money to the owner address */
     function withdraw() public onlyOwner {
         uint256 balance = address(this).balance;
@@ -107,6 +107,10 @@ contract RoyaltySmartContract is  WhiteListing,
 
     function unpause() public onlyOwner {
         _unpause();
+    }
+    
+    function getMintPrice() public pure returns (uint256) {
+        return MINT_PRICE;
     }
 
     function tokenURI(uint256 tokenId)
