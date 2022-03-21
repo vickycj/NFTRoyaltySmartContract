@@ -17,12 +17,16 @@ describe("Testing Compilation/Deployment", function () {
       royaltyContract = await RoyaltySmartFactory.deploy();
     });
 
-    it("Should initialize the contract", async () => {
-      expect(await royaltyContract.totalSupply()).to.equal(0);
+    describe("", function () {
+      it("Should initialize the contract", async () => {
+        expect(await royaltyContract.totalSupply()).to.equal(0);
+      });
     });
-  
-    it("Should set the right owner", async () => {
-      expect(await royaltyContract.owner()).to.equal(await owner.address);
+
+    describe("", function () {
+      it("Should set the right owner", async () => {
+        expect(await royaltyContract.owner()).to.equal(await owner.address);
+      });
     });
 
   });

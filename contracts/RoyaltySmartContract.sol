@@ -23,7 +23,7 @@ contract RoyaltySmartContract is  WhiteListing,
     event RoyaltykNftMinted(address sender, uint256 tokenId);
 
     /** Royalty fee expressed in basis point, defaults to 2 % of the sale price */
-    uint96 ROYALTY_FEE_DEFAULT = 20;
+    uint96 ROYALTY_FEE_DEFAULT = 200;
 
     
     uint16 public constant MAX_SUPPLY = 1000;
@@ -72,7 +72,7 @@ contract RoyaltySmartContract is  WhiteListing,
             balanceOf(_msgSender()) <= MAX_PER_ADDRESS,
             "Already Exceeded max alowed Tokens."
         );
-        if(_isOnlyWhitelisted() == true) {
+        if(_isOnlyWhitelisted() && _msgSender() != owner()) {
             require(isWhitelisted(_msgSender()), "You are not whitelisted for the sale.");
             _mintNft();
         } else {

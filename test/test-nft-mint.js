@@ -11,7 +11,7 @@ describe("Testing Mint Function", function () {
         value : royalty.getMintPrice()
     });
 
-    expect(royalty.totalSupply() > 0);
+    expect(await royalty.totalSupply()).to.equal(1);
     
   });
 });
